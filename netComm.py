@@ -79,7 +79,10 @@ class Client:
                 item = input("Enter the item name: ")
                 price = input("Enter item price: ")
                 quantity = input("Enter item quantity: ")
-                publicKey = input("Enter your public key")
+                publicKeyN = input("Enter your public key N: ")
+                publicKeyE = input("Enter your public key E: ")
+
+                publicKey = (publicKeyN, publicKeyE)
 
                 items_loaded = self.load_store()
 
@@ -114,6 +117,20 @@ class Client:
 
                 if(money_in_wallet >= (item_price * quantity)):
                     #tell the seller you want to buy
+                    keys_loaded = self.load_keys()
+
+                    port_to_send = None
+
+                    for key in keys_loaded.keys():
+                        if (keys_loaded[key] == items_loaded[item][0]):
+                            port_to_send = key
+                            break
+
+                    message = "buy|" + item + "|" + quantity
+                    message = message.encode("utf-8")
+                    signature = rsa.sign(message, self.private_key, "SHA-1")
+
+                    self.sock.sendto(message +"|".encode("utf-8")+signature, ("localhost", port_to_send))
 
                     #recieve confirmation from seller
 
@@ -134,7 +151,44 @@ class Client:
 
             dataString, address = self.sock.recvfrom(4096)
 
-            print(dataString.decode("utf-8"))
+            recv_message = dataString.decode("utf-8")
+            recv_message = recv_message.split("|")
+
+            if(recv_message[0] == "buy"):
+                print("Someone wants to buy", recv_message[2], recv_message[1])
+                keys_loaded = self.load_keys()
+                pubkey = rsa.PublicKey(keys_loaded[address[1]][0], keys_loaded[address[1]][1])
+
+                m = recv_message[0] + "|" + recv_message[1] + "|" + recv_message[2]
+                m = m.encode("utf-8")
+
+                sig = recv_message[-1].encode("utf-8")
+
+                if(rsa.verify(m, sig, pubkey) == "SHA-1"):
+                    print("Buyer is authenticated")
+
+                    msg = "sellerConf".encode("utf-8")
+
+                    signature = rsa.sign(msg, self.private_key, "SHA-1")
+                    self.sock.sendto(msg + "|".encode("utf-8")+signature, address)
+                
+                else:
+                    print("Buyer was not authenticated")
+                    continue
+
+                
+            elif(recv_message[0] == "sellerConf"): #do transactions
+                keys_loaded = self.load_keys()
+
+                pubkey = rsa.PublicKey(keys_loaded[address[1]][0], keys_loaded[address[1]][1])
+
+                msg = recv_message[1].encode("utf-8")
+                sig = recv_message[-1].encode("utf-8")
+
+                if(rsa.verify(msg, sig, pubkey) == "SHA-1"):
+                    print("seller verified")
+
+
 
 
 if __name__ == "__main__":
