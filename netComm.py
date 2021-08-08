@@ -79,10 +79,6 @@ class Client:
                 item = input("Enter the item name: ")
                 price = input("Enter item price: ")
                 quantity = input("Enter item quantity: ")
-                publicKeyN = input("Enter your public key N: ")
-                publicKeyE = input("Enter your public key E: ")
-
-                publicKey = (publicKeyN, publicKeyE)
 
                 items_loaded = self.load_store()
 
@@ -92,7 +88,7 @@ class Client:
                     items_loaded[item] = (temp_tup[0], temp_tup[1] + quantity, temp_tup[2])
 
                 else: #if doesn't exists create entry
-                    items_loaded[item] = (publicKey, quantity, price)
+                    items_loaded[item] = ((self.public_key.n, self.public_key.e), quantity, price)
 
 
 
