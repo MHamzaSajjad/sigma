@@ -77,7 +77,7 @@ class Client:
 
         while True:
 
-            print('Enter 1 to see items available\nEnter 2 to sell an item\nEnter 3 to buy an item\n')
+            print('\nEnter 1 to see items available\nEnter 2 to sell an item\nEnter 3 to buy an item\n')
 
             option = int(input())
 
@@ -90,7 +90,7 @@ class Client:
 
                 for key in item_info.keys():
                     tup = item_info[key]
-                    print("Item name:", key, "quantity available:", tup[1], "price:", tup[2], "seller public key:", tup[0])
+                    print("Item name:", key, "\nquantity available:", tup[1], "\nprice:", tup[2], "\nseller public key:", tup[0])
 
                 print("")
             
@@ -105,7 +105,7 @@ class Client:
                 if item in items_loaded: #if already exists only increase quantity
                     temp_tup = items_loaded[item]
 
-                    items_loaded[item] = (temp_tup[0], temp_tup[1] + quantity, temp_tup[2])
+                    items_loaded[item] = (temp_tup[0], int(temp_tup[1]) + int(quantity), temp_tup[2])
 
                 else: #if doesn't exists create entry
                     items_loaded[item] = ((self.public_key.n, self.public_key.e), quantity, price)
@@ -130,12 +130,17 @@ class Client:
 
                 temp_tup = items_loaded[item]
 
-                item_price = temp_tup[2]
-                item_quantity = temp_tup[1]
+                item_price = int(temp_tup[2])
+                item_quantity = int(temp_tup[1])
 
-                money_in_wallet = self.get_money_from_chain(str((self.public_key.n, self.public_key.e)))
+                self.get_money_from_chain(str((self.public_key.n, self.public_key.e)))
+                money_in_wallet = self.money
 
-                if(money_in_wallet >= (item_price * quantity)):
+                if int(quantity) > int(item_quantity):
+                    print("Not enough product in stock.")
+                    continue
+
+                if(int(money_in_wallet) >= (int(item_price) * int(quantity))):
                     #tell the seller you want to buy
                     keys_loaded = self.load_keys()
 
@@ -156,10 +161,9 @@ class Client:
 
                     #both use each other's public keys decode a message sent with private key to confirm identity
 
-                    #create data struct for blockchain or add to unconfirm transactions
 
-                    
-                    
+
+                    #create data struct for blockchain
                     
                     #update blockchain file
                     chain = blockchain.open_chain_from_file()
@@ -173,8 +177,8 @@ class Client:
                     self.del_from_file(item, quantity) #update item's quantity in store
                     
 
-
-                    #message seller item was sold
+                else:
+                    print("Not enough tokens in wallet to buy", quantity, item)
 
 
     def receive_handler(self):

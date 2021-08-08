@@ -6,7 +6,7 @@ import pickle
 
 class Block:
     # The constructor initializes all the components of a block
-    def __init__(self, data, previous_block_hash = ''):
+    def __init__(self, data, previous_block_hash = '0'):
         self.timestamp = datetime.now().strftime("%d/%m/%Y") # Timestamps add a factor of verification when checking a block's validity
         self.nonce = 0 # This adds randomization to the mix when the block is mined
         self.data = data #1 block contains 1 transaction
@@ -51,27 +51,7 @@ def open_chain_from_file():
         else:
             line = line[1:-2]
             var_list = line.split()
-            # 
-            # var_list = []
-            # string_var = ""
-            # c = 0
-            # for charac in line:
-            #     if c == 3:
-            #         c += 1
-            #         continue
-            #     elif c == 4:
-            #         c = 0
-            #         continue
-            #     elif c == 2:
-            #         var_list.append(string_var)
-            #         string_var = ""
-            #         c += 1
-            #         continue
-            #     if charac == "'":
-            #         c += 1
-            #         continue
-            #     string_var += charac
-            print(var_list)
+            
 
             new_block = Block(var_list[2], var_list[3])
             new_block.timestamp = var_list[0]
@@ -144,5 +124,5 @@ class Blockchain:
 if __name__ == "__main__":
 
     difficulty = 4
-    chain = Blockchain(difficulty, "")
+    chain = Blockchain(difficulty, "0")
     chain.store_chain_in_file()
