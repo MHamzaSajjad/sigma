@@ -25,7 +25,7 @@ class Client:
         if(itemName in items_loaded):
             temp_tup = items_loaded[itemName]
 
-            final_quantity = temp_tup[1] - quantity
+            final_quantity = int(temp_tup[1]) - int(quantity)
             if(final_quantity <= 0):
                 del items_loaded[itemName]
 
@@ -77,7 +77,7 @@ class Client:
 
         while True:
 
-            print('\nEnter 1 to see items available\nEnter 2 to sell an item\nEnter 3 to buy an item\n')
+            print('\nEnter 1 to see items available\nEnter 2 to sell an item\nEnter 3 to buy an item\nEnter 4 to print blockchain\nEnter 5 to quit\n')
 
             option = int(input())
 
@@ -151,11 +151,11 @@ class Client:
                             port_to_send = key
                             break
 
-                    message = "buy|" + item + "|" + quantity
+                    message = "buy|" + str(item) + "|" + str(quantity)
                     message = message.encode("utf-8")
                     signature = rsa.sign(message, self.private_key, "SHA-1")
 
-                    self.sock.sendto(message +"|".encode("utf-8")+signature, ("localhost", port_to_send))
+                    self.sock.sendto(message + "|".encode("utf-8")+ signature, ("localhost", int(port_to_send)))
                     
                     #receive confirmation from seller
 
@@ -163,8 +163,6 @@ class Client:
 
 
 
-                    #create data struct for blockchain
-                    
                     #update blockchain file
                     chain = blockchain.open_chain_from_file()
 
@@ -176,9 +174,16 @@ class Client:
 
                     self.del_from_file(item, quantity) #update item's quantity in store
                     
-
+                
                 else:
                     print("Not enough tokens in wallet to buy", quantity, item)
+            elif(option == 4):
+                chain = blockchain.open_chain_from_file()
+                chain.print_chain()
+            elif(option == 5):
+                break
+            else:
+                print("Invalid option.")
 
 
     def receive_handler(self):
@@ -198,7 +203,7 @@ if __name__ == "__main__":
     # creats public private key pairs
     # and adds the public key to the open list in keys.txt
 
-    (pubkey, privkey) = rsa.newkeys(256)  #creates public private key pair
+    (pubkey, privkey) = rsa.newkeys(512)  #creates public private key pair
     user = Client(pubkey, privkey)
 
     pubN = pubkey.n  #seperated as rsa.PublicKey is not JSON serialisable
